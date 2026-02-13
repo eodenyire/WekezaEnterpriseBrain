@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\WekezaEnterpriseBrain.Core\WekezaEnterpriseBrain.Core.csproj" />
+    <ProjectReference Include="..\..\src\WekezaEnterpriseBrain.Infrastructure\WekezaEnterpriseBrain.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
