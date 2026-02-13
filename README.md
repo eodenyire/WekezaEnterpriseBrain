@@ -37,6 +37,36 @@ Through comprehensive system analysis, we have **discovered and connected all 15
 
 See [DATABASE_INVENTORY.md](DATABASE_INVENTORY.md) for complete details.
 
+### How We Connect
+
+The Enterprise Brain uses a **sophisticated connector pattern architecture** to integrate all databases:
+
+**Connection Methods:**
+- **Direct Database**: PostgreSQL connections with pooling (8 systems)
+- **REST API**: OAuth2-secured HTTP APIs (3 systems)
+- **Event-Driven**: Real-time pub/sub streams (2 systems)
+- **Hybrid**: Combined direct + event patterns (2 systems)
+
+**Key Features:**
+- 11 specialized connector implementations
+- Unified `IDataSourceConnector` interface
+- Async/await for scalability
+- TLS/OAuth2 security
+- Health monitoring & auto-recovery
+- Connection pooling & retry logic
+
+**📖 See [CONNECTION_ARCHITECTURE.md](CONNECTION_ARCHITECTURE.md) for complete technical details**
+
+**🔌 Test Connections:**
+```bash
+# Via API
+curl http://localhost:5273/api/connectioninfo/architecture
+curl http://localhost:5273/api/connectioninfo/status
+
+# Via demo
+./demo-integration.sh
+```
+
 ### Integrated Wekeza Systems
 
 The Enterprise Brain aggregates data from:
