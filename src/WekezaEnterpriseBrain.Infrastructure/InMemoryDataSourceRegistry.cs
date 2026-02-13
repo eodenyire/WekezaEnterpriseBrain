@@ -27,9 +27,19 @@ public class InMemoryDataSourceRegistry : IDataSourceRegistry
             // Create appropriate connector
             IDataSourceConnector connector = config.Type switch
             {
-                DataSourceType.CoreBanking => new CoreBankingConnector(config),
+                DataSourceType.CoreBanking => config.Name.Contains("Comprehensive") 
+                    ? new CoreBankingConnector(config)
+                    : new GenericCoreBankingConnector(config, config.Name),
                 DataSourceType.MobileBanking => new MobileBankingConnector(config),
+                DataSourceType.WebBanking => new WebBankingConnector(config),
+                DataSourceType.USSD => new USSDConnector(config),
                 DataSourceType.FraudSystem => new FraudSystemConnector(config),
+                DataSourceType.RiskSystem => new RiskSystemConnector(config),
+                DataSourceType.OpenBanking => new OpenBankingConnector(config),
+                DataSourceType.ERMS => new RiskSystemConnector(config),
+                DataSourceType.AICopilot => new AICopilotConnector(config),
+                DataSourceType.Analytics => new AnalyticsConnector(config),
+                DataSourceType.External => new ExternalSystemConnector(config, config.Name, config.Type),
                 _ => throw new NotSupportedException($"Connector type {config.Type} is not yet implemented")
             };
 
