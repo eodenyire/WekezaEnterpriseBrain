@@ -224,6 +224,19 @@ dotnet test
 
 ## Example Usage
 
+### List All Databases
+
+```bash
+# Quick database list with nice formatting
+./list-databases.sh
+
+# Or via API
+curl http://localhost:5273/api/databaseinventory
+
+# Or view the quick reference
+cat DATABASES_LIST.md
+```
+
 ### 1. List Integrated Systems
 
 ```bash
