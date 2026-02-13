@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WekezaEnterpriseBrain.Api/WekezaEnterpriseBrain.Api.csproj" />
+    <Project Path="src/WekezaEnterpriseBrain.Core/WekezaEnterpriseBrain.Core.csproj" />
+    <Project Path="src/WekezaEnterpriseBrain.Infrastructure/WekezaEnterpriseBrain.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WekezaEnterpriseBrain.Tests/WekezaEnterpriseBrain.Tests.csproj" />
+  </Folder>
+</Solution>
