@@ -2,10 +2,13 @@
 
 A real-time decision engine with comprehensive multi-system integration for unified customer intelligence across banking systems.
 
+**Databases Discovered: 15 across all Wekeza systems**
+
 ## Overview
 
 Wekeza Enterprise Brain is an enterprise-level data platform that provides:
 
+- **Multi-Database Integration** - Connects to 15 databases across 9+ Wekeza systems
 - **Global Customer Identity (GCID)** - One unified customer ID across all systems
 - **Multi-System Integration** - Connect to all Wekeza banking systems
 - **Customer 360** - Real-time unified view of customer data
@@ -14,6 +17,23 @@ Wekeza Enterprise Brain is an enterprise-level data platform that provides:
 - **Real-time Decision Engine** - Sub-200ms decision-making for fraud, risk, and AI systems
 
 ## System Integration
+
+### Database Discovery
+
+Through comprehensive system analysis, we have **discovered 15 databases** across the Wekeza ecosystem:
+
+**Database Inventory:**
+- **Core Banking**: 5 databases (ComprehensiveWekezaApi, DatabaseWekezaApi, EnhancedWekezaApi, MinimalWekezaApi, Wekeza.Core.Api)
+- **Channels**: 3 databases (Mobile Banking, Web Banking, USSD)
+- **Security & Risk**: 2 databases (Fraud Detection, ERMS)
+- **Integration**: 2 databases (Open Banking/Nexus, AI Copilot)
+- **Analytics & Support**: 3 databases (BI/Analytics, Audit Logs, Reporting)
+
+**Integration Status:**
+- ✅ **3 databases connected** (20%)
+- 🟡 **12 databases ready to connect** (80%)
+
+See [DATABASE_INVENTORY.md](DATABASE_INVENTORY.md) for complete details.
 
 ### Integrated Wekeza Systems
 
@@ -140,7 +160,12 @@ WekezaEnterpriseBrain/
 
 ## API Endpoints
 
-**Total: 19 endpoints across 4 controllers**
+**Total: 22 endpoints across 5 controllers**
+
+### Database Inventory APIs (3 endpoints) 🆕
+- `GET /api/databaseinventory` - Get complete database inventory
+- `GET /api/databaseinventory/summary` - Get database discovery summary
+- `GET /api/databaseinventory/categories` - Get database categories
 
 ### Customer APIs (4 endpoints)
 - `GET /api/customer/{gcid}` - Get customer 360 profile
