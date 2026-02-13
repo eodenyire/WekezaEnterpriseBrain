@@ -94,7 +94,7 @@ WekezaEnterpriseBrain/
 ## Getting Started
 
 ### Prerequisites
-- .NET 9.0 SDK or higher
+- .NET 10.0 SDK or higher
 - (Optional) PostgreSQL for production deployment
 
 ### Build and Run
@@ -145,7 +145,7 @@ curl -X POST "http://localhost:5000/api/decision" \
 
 ## Technology Stack
 
-- **Framework**: ASP.NET Core 9.0
+- **Framework**: ASP.NET Core 10.0
 - **Language**: C# 13
 - **Architecture**: Clean Architecture / Onion Architecture
 - **Storage**: In-memory (POC), PostgreSQL (Production)

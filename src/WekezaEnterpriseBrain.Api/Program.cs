@@ -1,5 +1,6 @@
 using WekezaEnterpriseBrain.Core.Interfaces;
 using WekezaEnterpriseBrain.Core.Services;
+using WekezaEnterpriseBrain.Core.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,11 +37,11 @@ app.UseCors();
 app.MapControllers();
 
 // Health check endpoint
-app.MapGet("/health", () => Results.Ok(new 
+app.MapGet("/health", () => Results.Ok(new HealthCheckResponse
 { 
-    status = "healthy",
-    service = "Wekeza Enterprise Brain",
-    timestamp = DateTime.UtcNow
+    Status = "healthy",
+    Service = "Wekeza Enterprise Brain",
+    Timestamp = DateTime.UtcNow
 }))
 .WithName("HealthCheck");
 

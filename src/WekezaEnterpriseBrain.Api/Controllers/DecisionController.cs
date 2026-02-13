@@ -44,9 +44,14 @@ public class DecisionController : ControllerBase
     }
 
     [HttpGet("risk-score/{gcid}")]
-    public async Task<ActionResult<object>> GetRiskScore(Guid gcid, [FromQuery] string eventType = "GENERAL")
+    public async Task<ActionResult<RiskScoreResponse>> GetRiskScore(Guid gcid, [FromQuery] string eventType = "GENERAL")
     {
         var riskScore = await _decisionEngineService.CalculateRiskScoreAsync(gcid, eventType);
-        return Ok(new { globalCustomerId = gcid, riskScore, eventType });
+        return Ok(new RiskScoreResponse 
+        { 
+            GlobalCustomerId = gcid, 
+            RiskScore = riskScore, 
+            EventType = eventType 
+        });
     }
 }

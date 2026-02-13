@@ -8,6 +8,11 @@ namespace WekezaEnterpriseBrain.Core.Services;
 /// </summary>
 public class DecisionEngineService : IDecisionEngineService
 {
+    // Risk thresholds and limits
+    private const int MaxAllowedFailedLogins = 3;
+    private const decimal HighTransactionThreshold = 0.5m;
+    private const decimal MaxLoanToIncomeRatio = 0.1m;
+    
     private readonly ICustomer360Service _customer360Service;
 
     public DecisionEngineService(ICustomer360Service customer360Service)
@@ -65,7 +70,7 @@ public class DecisionEngineService : IDecisionEngineService
         decimal score = customer.RiskScore;
 
         // Adjust score based on behavioral patterns
-        if (customer.FailedLoginAttempts > 3)
+        if (customer.FailedLoginAttempts > MaxAllowedFailedLogins)
         {
             score += 0.2m;
         }
@@ -79,7 +84,7 @@ public class DecisionEngineService : IDecisionEngineService
         if (amount.HasValue && customer.AverageDailyBalance > 0)
         {
             var amountRatio = amount.Value / customer.AverageDailyBalance;
-            if (amountRatio > 0.5m) // Transaction is > 50% of average balance
+            if (amountRatio > HighTransactionThreshold) // Transaction is > 50% of average balance
             {
                 score += 0.15m;
             }
@@ -125,7 +130,7 @@ public class DecisionEngineService : IDecisionEngineService
             return "DECLINE";
         }
 
-        if (customer.MonthlyInflow < amount * 0.1m) // Loan > 10x monthly inflow
+        if (customer.MonthlyInflow < amount * MaxLoanToIncomeRatio) // Loan > 10x monthly inflow
         {
             flags.Add("INSUFFICIENT_INCOME");
             return "DECLINE";
