@@ -30,6 +30,8 @@ public enum DataSourceType
     ERMS,
     AICopilot,
     Analytics,
+    CRM,
+    PersonalBanking,
     External
 }
 

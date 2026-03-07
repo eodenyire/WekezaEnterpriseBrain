@@ -226,18 +226,20 @@ static async Task InitializeDataSourcesAsync(IServiceProvider services)
     
     // INTEGRATION SYSTEMS (2)
     
-    // 11. Open Banking (Nexus)
+    // 11. Open Banking (WekezaOpenBanking)
     await registry.RegisterDataSourceAsync(new DataSourceConfiguration
     {
         Name = "Nexus (Open Banking)",
         Type = DataSourceType.OpenBanking,
-        ConnectionString = "Host=localhost;Database=OpenBanking;",
+        ConnectionString = "Host=localhost;Database=wekeza_banking;Username=wekeza_user;Port=5432;",
         IsEnabled = true,
         CreatedAt = DateTime.UtcNow,
         Metadata = new Dictionary<string, string>
         {
-            ["Description"] = "Open banking platform",
-            ["APIVersion"] = "v2"
+            ["Description"] = "Open banking platform (WekezaOpenBanking) - PostgreSQL wekeza_banking",
+            ["APIVersion"] = "v2",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaOpenBanking",
+            ["KeyEntities"] = "oauth_clients, oauth_tokens, customers, accounts, transactions, payments, webhooks"
         }
     });
     
@@ -300,6 +302,128 @@ static async Task InitializeDataSourcesAsync(IServiceProvider services)
         {
             ["Description"] = "Operational reporting",
             ["ReportCount"] = "500"
+        }
+    });
+    
+    // NEWLY DISCOVERED SYSTEMS FROM GITHUB SCAN (github.com/eodenyire)
+    // These repositories were discovered by scanning https://github.com/eodenyire for repos starting with "Wekeza"
+    
+    // 16. WekezaCRM - Customer Relationship Management System
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaCRM",
+        Type = DataSourceType.CRM,
+        ConnectionString = "Server=(localdb)\\mssqllocaldb;Database=WekezaCRM;Trusted_Connection=True;",
+        IsEnabled = true,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "CRM system with AI/sentiment analysis, WhatsApp and USSD integration",
+            ["DatabaseType"] = "SQL Server",
+            ["DatabaseName"] = "WekezaCRM",
+            ["DbContext"] = "CRMDbContext",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaCRM",
+            ["KeyEntities"] = "Customer, Account, Transaction, Case, Interaction, Campaign, NextBestAction, SentimentAnalysis"
+        }
+    });
+    
+    // 17. WekezaNextGenPersonalBanking - AI-Powered Personal Banking Channel
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaNextGenPersonalBanking",
+        Type = DataSourceType.PersonalBanking,
+        ConnectionString = "BaseUrl=http://localhost:5000;",
+        IsEnabled = true,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "AI-powered personal banking API channel aggregating CoreApi, ComprehensiveApi, and Mvp40Api",
+            ["Architecture"] = "API Aggregation Layer",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaNextGenPersonalBanking",
+            ["BackendSystems"] = "ComprehensiveApi (5003), CoreApi (5000), Mvp40Api (5004)",
+            ["AIFeatures"] = "Transaction categorization, cash flow prediction, financial health scoring"
+        }
+    });
+    
+    // 18. WekezaBank - Risk Management System (KYC/AML)
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaBank",
+        Type = DataSourceType.RiskSystem,
+        ConnectionString = "Host=localhost;Database=risk_management;Port=5432;",
+        IsEnabled = true,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "Risk management system with KYC/AML using Ballerine, CISO Assistant and Tazama integrations",
+            ["DatabaseType"] = "PostgreSQL",
+            ["DatabaseName"] = "risk_management",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaBank",
+            ["Integrations"] = "Ballerine (KYC/AML), CISO Assistant (Security), Tazama (Transaction Monitoring)"
+        }
+    });
+    
+    // 19. WekezaGlobal - Africa's Cross-Border Financial Rail (Placeholder)
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaGlobal",
+        Type = DataSourceType.External,
+        ConnectionString = "Host=localhost;Database=WekezaGlobal;",
+        IsEnabled = false,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "Africa's cross-border financial rail - pending implementation",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaGlobal",
+            ["Status"] = "Repository discovered, implementation pending"
+        }
+    });
+    
+    // 20. WekezaDFS - Digital Financial Services (Placeholder)
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaDFS",
+        Type = DataSourceType.External,
+        ConnectionString = "Host=localhost;Database=WekezaDFS;",
+        IsEnabled = false,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "Digital financial services - pending implementation",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaDFS",
+            ["Status"] = "Repository discovered, implementation pending"
+        }
+    });
+    
+    // 21. WekezaHela - (Placeholder)
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaHela",
+        Type = DataSourceType.External,
+        ConnectionString = "Host=localhost;Database=WekezaHela;",
+        IsEnabled = false,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "WekezaHela system - pending implementation",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaHela",
+            ["Status"] = "Repository discovered, implementation pending"
+        }
+    });
+    
+    // 22. WekezaPublicSectorBanking - Public Sector Banking (Placeholder)
+    await registry.RegisterDataSourceAsync(new DataSourceConfiguration
+    {
+        Name = "WekezaPublicSectorBanking",
+        Type = DataSourceType.External,
+        ConnectionString = "Host=localhost;Database=WekezaPublicSectorBanking;",
+        IsEnabled = false,
+        CreatedAt = DateTime.UtcNow,
+        Metadata = new Dictionary<string, string>
+        {
+            ["Description"] = "Public sector banking - pending implementation",
+            ["GitHubRepo"] = "https://github.com/eodenyire/WekezaPublicSectorBanking",
+            ["Status"] = "Repository discovered, implementation pending"
         }
     });
 }

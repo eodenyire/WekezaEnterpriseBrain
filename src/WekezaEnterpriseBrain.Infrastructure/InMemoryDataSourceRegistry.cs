@@ -39,6 +39,8 @@ public class InMemoryDataSourceRegistry : IDataSourceRegistry
                 DataSourceType.ERMS => new RiskSystemConnector(config),
                 DataSourceType.AICopilot => new AICopilotConnector(config),
                 DataSourceType.Analytics => new AnalyticsConnector(config),
+                DataSourceType.CRM => new WekezaCRMConnector(config),
+                DataSourceType.PersonalBanking => new PersonalBankingConnector(config),
                 DataSourceType.External => new ExternalSystemConnector(config, config.Name, config.Type),
                 _ => throw new NotSupportedException($"Connector type {config.Type} is not yet implemented")
             };
