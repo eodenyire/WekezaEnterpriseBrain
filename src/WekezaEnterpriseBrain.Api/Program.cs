@@ -6,6 +6,9 @@ using WekezaEnterpriseBrain.Core.Events;
 using WekezaEnterpriseBrain.Core.Features;
 using WekezaEnterpriseBrain.Infrastructure;
 using WekezaEnterpriseBrain.Infrastructure.EventBus;
+using WekezaEnterpriseBrain.Infrastructure.DataHub;
+using WekezaEnterpriseBrain.Infrastructure.DataHub.Etl;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,48 @@ builder.Services.AddSingleton<IEventBus>(sp => sp.GetRequiredService<InMemoryEve
 builder.Services.AddSingleton<IEventPublisher>(sp => sp.GetRequiredService<InMemoryEventBus>());
 builder.Services.AddSingleton<IDataAggregationService, DataAggregationService>();
 builder.Services.AddSingleton<IFeatureStore, InMemoryFeatureStore>();
+
+// ============================================================================
+// Wekeza Main Datahub - PostgreSQL Data Warehouse
+// ============================================================================
+var datahubConnStr = builder.Configuration.GetConnectionString("WekezaDataHub")
+    ?? "Host=localhost;Port=5432;Database=wekeza_datahub;Username=wekeza_hub_user;Password=change_in_production";
+
+builder.Services.AddDbContext<WekezaDataHubDbContext>(opts =>
+    opts.UseNpgsql(datahubConnStr,
+        npgsql => npgsql.MigrationsHistoryTable("__ef_migrations", "warehouse")));
+
+// ETL Services - one per source system
+var config = builder.Configuration;
+builder.Services.AddScoped<IEtlService>(sp =>
+{
+    var hub    = sp.GetRequiredService<WekezaDataHubDbContext>();
+    var logger = sp.GetRequiredService<ILogger<WekezaBankEtlService>>();
+    var connStr = config["SourceSystems:WekezaBank:ConnectionString"]
+        ?? "Host=localhost;Port=5432;Database=risk_management;Username=risk_user;Password=change_in_production";
+    return new WekezaBankEtlService(hub, logger, connStr);
+});
+
+builder.Services.AddScoped<IEtlService>(sp =>
+{
+    var hub    = sp.GetRequiredService<WekezaDataHubDbContext>();
+    var logger = sp.GetRequiredService<ILogger<WekezaOpenBankingEtlService>>();
+    var connStr = config["SourceSystems:WekezaOpenBanking:ConnectionString"]
+        ?? "Host=localhost;Port=5432;Database=wekeza_banking;Username=wekeza_user;Password=change_in_production";
+    return new WekezaOpenBankingEtlService(hub, logger, connStr);
+});
+
+builder.Services.AddScoped<IEtlService>(sp =>
+{
+    var hub    = sp.GetRequiredService<WekezaDataHubDbContext>();
+    var logger = sp.GetRequiredService<ILogger<WekezaCrmEtlService>>();
+    var connStr = config["SourceSystems:WekezaCRM:ConnectionString"]
+        ?? "Server=localhost;Database=WekezaCRM;User Id=sa;Password=change_in_production;TrustServerCertificate=true;";
+    return new WekezaCrmEtlService(hub, logger, connStr);
+});
+
+// DataHub Orchestrator
+builder.Services.AddScoped<IDataHubOrchestrator, DataHubOrchestrator>();
 
 // Configure CORS for development
 builder.Services.AddCors(options =>
@@ -135,7 +180,7 @@ static async Task InitializeDataSourcesAsync(IServiceProvider services)
     {
         Name = "Wekeza.Core.Api",
         Type = DataSourceType.CoreBanking,
-        ConnectionString = "Host=localhost;Database=WekeazCore;",
+        ConnectionString = "Host=localhost;Database=WekezaCoreDB;",
         IsEnabled = true,
         CreatedAt = DateTime.UtcNow,
         Metadata = new Dictionary<string, string>
