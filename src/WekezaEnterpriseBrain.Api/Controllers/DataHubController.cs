@@ -65,11 +65,11 @@ public class DataHubController : ControllerBase
             lastSyncTimestamps = lastSyncs,
             sourceSystems = new[]
             {
-                new { name = "WekezaBank",            type = "RiskManagement",  tech = "Python/SQLAlchemy", database = "risk_management (PostgreSQL)",   github = "https://github.com/eodenyire/WekezaBank" },
-                new { name = "WekezaCRM",             type = "CRM",             tech = ".NET 8/EF Core",   database = "WekezaCRM (SQL Server)",           github = "https://github.com/eodenyire/WekezaCRM" },
-                new { name = "WekezaOpenBanking",     type = "OpenBanking",     tech = "Node.js/pg",       database = "wekeza_banking (PostgreSQL)",       github = "https://github.com/eodenyire/WekezaOpenBanking" },
-                new { name = "Wekeza",                type = "CoreBanking",     tech = ".NET 8/EF Core",   database = "WekezaCoreDB (PostgreSQL)",         github = "https://github.com/eodenyire/Wekeza" },
-                new { name = "WekezaNextGenPersonal", type = "PersonalBanking", tech = ".NET Core",        database = "API Aggregation Layer",             github = "https://github.com/eodenyire/WekezaNextGenPersonalBanking" }
+                new { name = "WekezaBank",            type = "RiskManagement",  tech = "Python/SQLAlchemy", database = "risk_management (PostgreSQL)",                github = "https://github.com/eodenyire/WekezaBank" },
+                new { name = "WekezaCRM",             type = "CRM",             tech = ".NET 8/EF Core",   database = "WekezaCRM (SQL Server)",                      github = "https://github.com/eodenyire/WekezaCRM" },
+                new { name = "WekezaOpenBanking",     type = "OpenBanking",     tech = "Node.js/pg",       database = "wekeza_banking (PostgreSQL)",                  github = "https://github.com/eodenyire/WekezaOpenBanking" },
+                new { name = "WekezaCore",            type = "CoreBanking",     tech = ".NET 8/EF Core",   database = "wekeza_banking_comprehensive (PostgreSQL)",    github = "https://github.com/eodenyire/Wekeza" },
+                new { name = "WekezaNextGenPersonal", type = "PersonalBanking", tech = ".NET Core",        database = "API Aggregation Layer",                        github = "https://github.com/eodenyire/WekezaNextGenPersonalBanking" }
             },
             generatedAt = DateTimeOffset.UtcNow
         });

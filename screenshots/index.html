@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wekeza Enterprise Brain – Integration Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1a237e;
+      --accent:  #00bcd4;
+      --green:   #43a047;
+      --amber:   #fb8c00;
+      --red:     #e53935;
+      --bg:      #0d1117;
+      --card:    #161b22;
+      --border:  #30363d;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* ── Header ─────────────────────────────────── */
+    header { background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #0d47a1 100%);
+             padding: 28px 40px; border-bottom: 1px solid #3949ab; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; max-width: 1600px; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand-icon { width: 56px; height: 56px; background: rgba(255,255,255,.12); border-radius: 12px;
+                  display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .brand-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
+    .brand-text p  { font-size: .85rem; color: rgba(255,255,255,.7); margin-top: 2px; }
+    .status-badge { background: rgba(67,160,71,.2); border: 1px solid #43a047; border-radius: 20px;
+                    padding: 6px 16px; color: #81c784; font-size: .8rem; display: flex; align-items: center; gap: 6px; }
+    .pulse { width: 8px; height: 8px; background: #43a047; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+    .header-meta { color: rgba(255,255,255,.6); font-size: .8rem; text-align: right; }
+
+    /* ── Layout ─────────────────────────────────── */
+    .page { max-width: 1600px; margin: 0 auto; padding: 32px 40px; }
+    .section-title { font-size: 1.1rem; font-weight: 600; color: var(--accent); letter-spacing: .05em;
+                     text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+    /* ── KPI Row ─────────────────────────────────── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+    .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .kpi.green::before  { background: var(--green); }
+    .kpi.blue::before   { background: var(--accent); }
+    .kpi.amber::before  { background: var(--amber); }
+    .kpi.purple::before { background: #7c3aed; }
+    .kpi.red::before    { background: var(--red); }
+    .kpi-label { font-size: .75rem; color: var(--muted); margin-bottom: 8px; }
+    .kpi-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .kpi-sub   { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── Systems Grid ────────────────────────────── */
+    .systems-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; margin-bottom: 40px; }
+    .sys-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: border-color .2s; }
+    .sys-card:hover { border-color: var(--accent); }
+    .sys-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .sys-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .sys-info { flex: 1; margin-left: 12px; }
+    .sys-name { font-size: .95rem; font-weight: 600; }
+    .sys-type { font-size: .75rem; color: var(--muted); }
+    .badge { font-size: .7rem; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+    .badge-green  { background: rgba(67,160,71,.15); color: #81c784; border: 1px solid rgba(67,160,71,.3); }
+    .badge-amber  { background: rgba(251,140,0,.15); color: #ffb74d; border: 1px solid rgba(251,140,0,.3); }
+    .badge-blue   { background: rgba(0,188,212,.15); color: #4dd0e1; border: 1px solid rgba(0,188,212,.3); }
+    .sys-db { font-size: .78rem; color: var(--muted); margin-bottom: 10px;
+              background: rgba(255,255,255,.04); border-radius: 6px; padding: 6px 10px; }
+    .sys-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { font-size: .7rem; background: rgba(255,255,255,.06); color: var(--muted); border-radius: 4px; padding: 2px 7px; }
+
+    /* ── Integration Flow ────────────────────────── */
+    .flow-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 40px; }
+    .flow-row  { display: flex; align-items: center; flex-wrap: wrap; gap: 0; }
+    .flow-node { background: rgba(0,188,212,.1); border: 1px solid rgba(0,188,212,.3); border-radius: 10px;
+                 padding: 12px 18px; text-align: center; min-width: 120px; }
+    .flow-node.hub  { background: rgba(26,35,126,.4); border-color: #3949ab; }
+    .flow-node.brain{ background: rgba(124,58,237,.2); border-color: #7c3aed; }
+    .flow-node span { display: block; font-size: .7rem; color: var(--muted); margin-top: 3px; }
+    .flow-arrow { padding: 0 10px; color: var(--accent); font-size: 1.2rem; }
+
+    /* ── Modules Table ───────────────────────────── */
+    .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .module-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .module-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .module-icon { font-size: 1.2rem; }
+    .module-name { font-size: .9rem; font-weight: 600; }
+    .ep-list { list-style: none; }
+    .ep-list li { font-size: .75rem; color: var(--muted); padding: 3px 0;
+                  border-bottom: 1px solid rgba(255,255,255,.04); display: flex; align-items: center; gap: 6px; }
+    .ep-list li::before { content: '›'; color: var(--accent); }
+
+    /* ── ETL Pipeline ────────────────────────────── */
+    .etl-table { width:100%; border-collapse: collapse; margin-bottom: 40px; }
+    .etl-table th { background: rgba(255,255,255,.05); padding: 10px 14px; text-align: left;
+                    font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+                    border-bottom: 1px solid var(--border); }
+    .etl-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.04);
+                    font-size: .82rem; vertical-align: middle; }
+    .etl-table tr:hover td { background: rgba(255,255,255,.02); }
+    .dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+    .dot-g { background: var(--green); }
+    .dot-a { background: var(--amber); }
+    .dot-r { background: var(--red); }
+    .dot-b { background: #60a5fa; }
+
+    /* ── Risk & Fraud Panel ──────────────────────── */
+    .risk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+    .risk-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .risk-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .risk-bars { display: flex; flex-direction: column; gap: 10px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-label { font-size: .78rem; color: var(--muted); width: 80px; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 8px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 4px; }
+    .bar-val { font-size: .78rem; width: 36px; text-align: right; }
+    .fraud-list { list-style: none; }
+    .fraud-list li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0;
+                     border-bottom: 1px solid rgba(255,255,255,.04); font-size: .82rem; }
+    .fraud-list li:last-child { border-bottom: none; }
+    .fi { font-size: 1.1rem; }
+
+    /* ── Customer 360 ────────────────────────────── */
+    .c360-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+                 padding: 24px; margin-bottom: 40px; }
+    .c360-grid { display: grid; grid-template-columns: 220px 1fr; gap: 24px; }
+    .c360-profile { text-align: center; }
+    .c360-avatar { width: 80px; height: 80px; background: linear-gradient(135deg,#1a237e,#00bcd4);
+                   border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center;
+                   justify-content: center; font-size: 2rem; }
+    .c360-name { font-weight: 600; margin-bottom: 4px; }
+    .c360-gcid { font-size: .7rem; color: var(--muted); word-break: break-all; }
+    .c360-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: center; }
+    .c360-detail { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .detail-item { background: rgba(255,255,255,.03); border-radius: 8px; padding: 10px 12px; }
+    .detail-label { font-size: .7rem; color: var(--muted); margin-bottom: 3px; }
+    .detail-val { font-size: .85rem; font-weight: 500; }
+
+    /* ── Analytics Row ───────────────────────────── */
+    .analytics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+    .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .chart-title { font-size: .88rem; font-weight: 600; margin-bottom: 14px; }
+    .mini-bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .mbc { flex: 1; border-radius: 4px 4px 0 0; min-width: 20px; transition: opacity .2s; }
+    .mbc:hover { opacity: .85; }
+    .chart-labels { display: flex; gap: 6px; margin-top: 6px; }
+    .chart-labels span { flex: 1; font-size: .65rem; color: var(--muted); text-align: center; }
+    .donut-wrap { display: flex; align-items: center; gap: 20px; }
+    .donut-legend { flex: 1; }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: .78rem; }
+    .lc { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    svg.donut { overflow: visible; }
+
+    /* ── Footer ──────────────────────────────────── */
+    footer { border-top: 1px solid var(--border); padding: 24px 40px; margin-top: 20px; }
+    .footer-inner { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .footer-inner span { font-size: .8rem; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .risk-row, .analytics-row { grid-template-columns: 1fr; }
+      .c360-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">🧠</div>
+      <div class="brand-text">
+        <h1>Wekeza Enterprise Brain</h1>
+        <p>AI-Powered Banking Intelligence Hub · eodenyire/WekezaEnterpriseBrain</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      <div class="status-badge"><div class="pulse"></div> All Systems Integrated</div>
+      <div class="header-meta">
+        <div>4 Live ETL Pipelines · 22 Registered Data Sources</div>
+        <div>Datahub: PostgreSQL wekeza_datahub · March 2026</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── KPIs ──────────────────────────────────────────────────────── -->
+  <div class="kpi-grid">
+    <div class="kpi green">
+      <div class="kpi-label">Registered Data Sources</div>
+      <div class="kpi-value" style="color:#81c784">22</div>
+      <div class="kpi-sub">12 enabled · 10 pending</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Live ETL Pipelines</div>
+      <div class="kpi-value" style="color:#4dd0e1">4</div>
+      <div class="kpi-sub">WekezaBank · CRM · OpenBanking · Core</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-label">Core Banking Modules</div>
+      <div class="kpi-value" style="color:#c084fc">18</div>
+      <div class="kpi-sub">CIF → Treasury · 85+ endpoints</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Datahub Tables</div>
+      <div class="kpi-value" style="color:#81c784">7</div>
+      <div class="kpi-sub">dim_customers · fact_transactions…</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Risk Integrations</div>
+      <div class="kpi-value" style="color:#ffb74d">3</div>
+      <div class="kpi-sub">Ballerine · Tazama · CISO Assistant</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Open Banking APIs</div>
+      <div class="kpi-value" style="color:#4dd0e1">v2</div>
+      <div class="kpi-sub">OAuth 2.0 · Webhooks · Payments</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Fraud Alerts (30d)</div>
+      <div class="kpi-value" style="color:#ef9a9a">–</div>
+      <div class="kpi-sub">Awaiting live DB connection</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">AI Decision Engine</div>
+      <div class="kpi-value" style="color:#81c784">ON</div>
+      <div class="kpi-sub">Real-time risk scoring active</div>
+    </div>
+  </div>
+
+  <!-- ── Integration Architecture Flow ─────────────────────────────── -->
+  <div class="section-title">🔄 Integration Architecture</div>
+  <div class="flow-card" style="margin-bottom:40px">
+    <div class="flow-row" style="justify-content:center;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="flow-node"><strong>WekezaCore</strong><span>ComprehensiveWekezaApi</span></div>
+        <div class="flow-node"><strong>WekezaBank</strong><span>Risk &amp; KYC/AML</span></div>
+        <div class="flow-node"><strong>WekezaCRM</strong><span>SQL Server CRM</span></div>
+        <div class="flow-node"><strong>WekezaOpenBanking</strong><span>OAuth2 · Webhooks</span></div>
+        <div class="flow-node" style="opacity:.6"><strong>WekezaGlobal</strong><span>Cross-border (pending)</span></div>
+        <div class="flow-node" style="opacity:.6"><strong>WekezaDFS</strong><span>Digital FS (pending)</span></div>
+      </div>
+      <div style="display:flex;align-items:center;padding:0 20px;flex-direction:column;gap:4px">
+        <div class="flow-arrow" style="font-size:2rem">→</div>
+        <div style="font-size:.7rem;color:var(--muted)">Dapper ETL<br/>Incremental Sync</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div class="flow-node hub" style="padding:20px 30px">
+          <strong style="font-size:1.1rem">📦 Wekeza Datahub</strong>
+          <span>PostgreSQL · wekeza_datahub</span>
+          <span style="margin-top:6px">staging | warehouse | analytics | audit</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%">
+          <div style="background:rgba(255,255,255,.04);border-radius:6px;padding:6px 8px;font-size:.7rem;text-align:center">dim_customers</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:6px;padding:6px 8px;font-size:.7rem;text-align:center">dim_accounts</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:6px;padding:6px 8px;font-size:.7rem;text-align:center">fact_transactions</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:6px;padding:6px 8px;font-size:.7rem;text-align:center">fact_payments</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:6px;padding:6px 8px;font-size:.7rem;text-align:center">fact_risk_assessments</div>
+          <div style="background:rgba(255,255,255,.04);border-radius:6px;padding:6px 8px;font-size:.7rem;text-align:center">fact_interactions</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;padding:0 20px;flex-direction:column;gap:4px">
+        <div class="flow-arrow" style="font-size:2rem">→</div>
+        <div style="font-size:.7rem;color:var(--muted)">Real-time<br/>Intelligence</div>
+      </div>
+      <div class="flow-node brain" style="padding:20px 24px;min-width:160px;text-align:center">
+        <strong style="font-size:1.1rem">🧠 Enterprise Brain</strong>
+        <span>Decision Engine</span>
+        <span>Customer 360</span>
+        <span>Risk Scoring</span>
+        <span>AI Insights</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Connected Systems ──────────────────────────────────────────── -->
+  <div class="section-title">🔗 Connected Systems (22 Sources)</div>
+  <div class="systems-grid">
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(26,35,126,.3)">🏦</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaCore (ComprehensiveWekezaApi)</div>
+          <div class="sys-type">Core Banking · github.com/eodenyire/Wekeza</div>
+        </div>
+        <span class="badge badge-green">Live ETL</span>
+      </div>
+      <div class="sys-db">PostgreSQL · wekeza_banking_comprehensive · .NET 8 / EF Core</div>
+      <div class="sys-tags">
+        <span class="tag">CIF</span><span class="tag">Accounts</span><span class="tag">Loans</span>
+        <span class="tag">Teller</span><span class="tag">Branches</span><span class="tag">Cards/ATM/POS</span>
+        <span class="tag">GL</span><span class="tag">Payments</span><span class="tag">Trade Finance</span>
+        <span class="tag">Treasury</span><span class="tag">18 modules</span><span class="tag">85+ endpoints</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(229,57,53,.2)">🛡️</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaBank</div>
+          <div class="sys-type">Risk Management / KYC/AML · github.com/eodenyire/WekezaBank</div>
+        </div>
+        <span class="badge badge-green">Live ETL</span>
+      </div>
+      <div class="sys-db">PostgreSQL · risk_management · Python / SQLAlchemy</div>
+      <div class="sys-tags">
+        <span class="tag">Ballerine KYC</span><span class="tag">Tazama TM</span>
+        <span class="tag">CISO Assistant</span><span class="tag">Isolation Forest ML</span>
+        <span class="tag">analyst_cases</span><span class="tag">risk_metrics</span>
+        <span class="tag">transaction_history</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(0,188,212,.15)">💼</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaCRM</div>
+          <div class="sys-type">CRM · github.com/eodenyire/WekezaCRM</div>
+        </div>
+        <span class="badge badge-green">Live ETL</span>
+      </div>
+      <div class="sys-db">SQL Server · WekezaCRM · .NET 8 / EF Core</div>
+      <div class="sys-tags">
+        <span class="tag">AI Sentiment</span><span class="tag">WhatsApp</span>
+        <span class="tag">USSD</span><span class="tag">Cases</span>
+        <span class="tag">Campaigns</span><span class="tag">NextBestAction</span>
+        <span class="tag">Interactions</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(67,160,71,.15)">🌐</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaOpenBanking (Nexus)</div>
+          <div class="sys-type">Open Banking · github.com/eodenyire/WekezaOpenBanking</div>
+        </div>
+        <span class="badge badge-green">Live ETL</span>
+      </div>
+      <div class="sys-db">PostgreSQL · wekeza_banking · Node.js / pg</div>
+      <div class="sys-tags">
+        <span class="tag">OAuth 2.0</span><span class="tag">Webhooks HMAC-SHA256</span>
+        <span class="tag">Payments API</span><span class="tag">TPP Clients</span>
+        <span class="tag">7-retry backoff</span><span class="tag">PSD2-like</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(124,58,237,.15)">📱</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaNextGenPersonalBanking</div>
+          <div class="sys-type">Personal Banking · github.com/eodenyire/WekezaNextGenPersonalBanking</div>
+        </div>
+        <span class="badge badge-green">Registered</span>
+      </div>
+      <div class="sys-db">API Aggregation Layer · .NET Core</div>
+      <div class="sys-tags">
+        <span class="tag">AI Categorization</span><span class="tag">Cash Flow Prediction</span>
+        <span class="tag">Health Score</span><span class="tag">CoreApi:5000</span>
+        <span class="tag">ComprehensiveApi:5003</span><span class="tag">Mvp40Api:5004</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(255,193,7,.1)">⚠️</div>
+        <div class="sys-info">
+          <div class="sys-name">Fraud Detection System</div>
+          <div class="sys-type">Real-time Fraud Prevention</div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="sys-db">PostgreSQL · FraudDetection · v3.0</div>
+      <div class="sys-tags">
+        <span class="tag">Real-time scoring</span><span class="tag">ML Models</span>
+        <span class="tag">Alert Engine</span><span class="tag">Pattern Detection</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(244,67,54,.15)">📊</div>
+        <div class="sys-info">
+          <div class="sys-name">ERMS (Enterprise Risk Management)</div>
+          <div class="sys-type">Risk Management · v2.0</div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="sys-db">PostgreSQL · RiskManagement</div>
+      <div class="sys-tags">
+        <span class="tag">Credit Risk</span><span class="tag">Market Risk</span>
+        <span class="tag">Operational Risk</span><span class="tag">Compliance</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(0,150,136,.15)">🌍</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaGlobal</div>
+          <div class="sys-type">Cross-border Financial Rail · github.com/eodenyire/WekezaGlobal</div>
+        </div>
+        <span class="badge badge-amber">Pending</span>
+      </div>
+      <div class="sys-db">Africa's Cross-border Financial Rail</div>
+      <div class="sys-tags">
+        <span class="tag">SWIFT</span><span class="tag">RTP</span>
+        <span class="tag">Remittances</span><span class="tag">FX</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(63,81,181,.15)">💳</div>
+        <div class="sys-info">
+          <div class="sys-name">WekezaDFS</div>
+          <div class="sys-type">Digital Financial Services · github.com/eodenyire/WekezaDFS</div>
+        </div>
+        <span class="badge badge-amber">Pending</span>
+      </div>
+      <div class="sys-db">Mobile Money · Wallets · Agent Banking</div>
+      <div class="sys-tags">
+        <span class="tag">M-Pesa</span><span class="tag">Airtel Money</span>
+        <span class="tag">Agent Banking</span><span class="tag">USSD</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(156,39,176,.15)">📡</div>
+        <div class="sys-info">
+          <div class="sys-name">Mobile Banking</div>
+          <div class="sys-type">Channel · iOS / Android</div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="sys-db">PostgreSQL · MobileBanking</div>
+      <div class="sys-tags">
+        <span class="tag">Push Notifications</span><span class="tag">Biometrics</span>
+        <span class="tag">QR Payments</span><span class="tag">NFC</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(3,169,244,.15)">💻</div>
+        <div class="sys-info">
+          <div class="sys-name">Web Banking Portal</div>
+          <div class="sys-type">Channel · Browser</div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="sys-db">PostgreSQL · WebBanking</div>
+      <div class="sys-tags">
+        <span class="tag">Multi-factor Auth</span><span class="tag">Statement Download</span>
+        <span class="tag">Standing Orders</span>
+      </div>
+    </div>
+
+    <div class="sys-card">
+      <div class="sys-header">
+        <div class="sys-icon" style="background:rgba(76,175,80,.15)">📟</div>
+        <div class="sys-info">
+          <div class="sys-name">USSD Banking</div>
+          <div class="sys-type">Channel · Feature Phones</div>
+        </div>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="sys-db">PostgreSQL · USSD_Banking · USSD Gateway</div>
+      <div class="sys-tags">
+        <span class="tag">Menu Navigation</span><span class="tag">Airtime Top-up</span>
+        <span class="tag">Balance Check</span><span class="tag">Transfers</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Core Banking Modules ──────────────────────────────────────── -->
+  <div class="section-title">🏛️ Core Banking Modules (WekezaCore – 18 Modules)</div>
+  <div class="modules-grid">
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">🏛️</span><span class="module-name">CIF – Customer Information</span></div>
+      <ul class="ep-list">
+        <li>POST /api/cif/individual – Create Individual Party</li>
+        <li>POST /api/cif/corporate – Create Corporate Party</li>
+        <li>PUT /api/cif/kyc-status – Update KYC Status</li>
+        <li>GET /api/cif/customer360/{id} – 360° View</li>
+        <li>POST /api/cif/aml-screening – AML Screening</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">💰</span><span class="module-name">Account Management</span></div>
+      <ul class="ep-list">
+        <li>POST /api/accounts/product-based – Open Product Account</li>
+        <li>POST /api/accounts/business – Register Business Account</li>
+        <li>PUT /api/accounts/{id}/freeze – Freeze Account</li>
+        <li>PUT /api/accounts/{id}/close – Close Account</li>
+        <li>POST /api/accounts/{id}/signatories – Add Signatory</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">💸</span><span class="module-name">Transaction Processing</span></div>
+      <ul class="ep-list">
+        <li>POST /api/transactions/deposit – Deposit Funds</li>
+        <li>POST /api/transactions/withdraw – Withdraw Funds</li>
+        <li>POST /api/transactions/transfer – Transfer Funds</li>
+        <li>POST /api/transactions/cheque – Deposit Cheque</li>
+        <li>GET /api/transactions/statement – Get Statement</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">🏦</span><span class="module-name">Loan Management</span></div>
+      <ul class="ep-list">
+        <li>POST /api/loans/apply – Apply for Loan</li>
+        <li>PUT /api/loans/{id}/approve – Approve Loan</li>
+        <li>POST /api/loans/{id}/disburse – Disburse Loan</li>
+        <li>POST /api/loans/{id}/repayment – Process Repayment</li>
+        <li>GET /api/loans/{id}/schedule – Repayment Schedule</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">💎</span><span class="module-name">Fixed Deposits &amp; Investments</span></div>
+      <ul class="ep-list">
+        <li>POST /api/deposits/fixed – Book Fixed Deposit</li>
+        <li>POST /api/deposits/call – Create Call Deposit</li>
+        <li>POST /api/deposits/recurring – Setup Recurring Deposit</li>
+        <li>POST /api/deposits/interest-accrual – Process Interest</li>
+        <li>GET /api/deposits/{id}/maturity – Maturity Details</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">🏢</span><span class="module-name">Teller Operations</span></div>
+      <ul class="ep-list">
+        <li>POST /api/teller/session/start – Start Teller Session</li>
+        <li>POST /api/teller/cash-deposit – Process Cash Deposit</li>
+        <li>POST /api/teller/cash-withdrawal – Cash Withdrawal</li>
+        <li>PUT /api/teller/session/end – End Teller Session</li>
+        <li>GET /api/teller/cash-position – Cash Position</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">🏪</span><span class="module-name">Branch Operations</span></div>
+      <ul class="ep-list">
+        <li>POST /api/branches – Create Branch</li>
+        <li>GET /api/branches – Get All Branches</li>
+        <li>GET /api/branches/{id}/performance – Branch Performance</li>
+        <li>POST /api/branches/{id}/cash-drawer – Manage Cash Drawer</li>
+        <li>GET /api/branches/{id}/transactions – Branch Transactions</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">💳</span><span class="module-name">Cards, ATM &amp; POS</span></div>
+      <ul class="ep-list">
+        <li>POST /api/cards/issue – Issue Card</li>
+        <li>PUT /api/cards/{id}/block – Block Card</li>
+        <li>POST /api/cards/{id}/pin-change – Change PIN</li>
+        <li>GET /api/atm/{id}/transactions – ATM Transactions</li>
+        <li>GET /api/pos/{id}/transactions – POS Transactions</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">📚</span><span class="module-name">General Ledger</span></div>
+      <ul class="ep-list">
+        <li>POST /api/gl/accounts – Create GL Account</li>
+        <li>POST /api/gl/journal-entry – Post Journal Entry</li>
+        <li>GET /api/gl/trial-balance – Trial Balance</li>
+        <li>GET /api/gl/balance-sheet – Balance Sheet</li>
+        <li>GET /api/gl/income-statement – Income Statement</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">💹</span><span class="module-name">Payments &amp; Transfers</span></div>
+      <ul class="ep-list">
+        <li>POST /api/payments/rtgs – RTGS Transfer</li>
+        <li>POST /api/payments/eft – EFT Transfer</li>
+        <li>POST /api/payments/pesalink – PesaLink Transfer</li>
+        <li>POST /api/payments/mobile – Mobile Money</li>
+        <li>GET /api/payments/{id}/status – Payment Status</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">📦</span><span class="module-name">Products</span></div>
+      <ul class="ep-list">
+        <li>POST /api/products – Create Product</li>
+        <li>GET /api/products – List Products</li>
+        <li>PUT /api/products/{id} – Update Product</li>
+        <li>GET /api/products/{id}/accounts – Product Accounts</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">🚢</span><span class="module-name">Trade Finance</span></div>
+      <ul class="ep-list">
+        <li>POST /api/trade/letter-of-credit – Issue LC</li>
+        <li>PUT /api/trade/lc/{id}/amend – Amend LC</li>
+        <li>POST /api/trade/lc/{id}/draw – Draw Against LC</li>
+        <li>GET /api/trade/lc/{id}/status – LC Status</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">💱</span><span class="module-name">Treasury &amp; FX</span></div>
+      <ul class="ep-list">
+        <li>POST /api/treasury/fx-deal – Book FX Deal</li>
+        <li>POST /api/treasury/settle – Settle Deal</li>
+        <li>GET /api/treasury/rates – Exchange Rates</li>
+        <li>GET /api/treasury/position – FX Position</li>
+      </ul>
+    </div>
+    <div class="module-card">
+      <div class="module-header"><span class="module-icon">👨‍💼</span><span class="module-name">Staff Management</span></div>
+      <ul class="ep-list">
+        <li>POST /api/staff – Create Staff Member</li>
+        <li>GET /api/staff – List Staff</li>
+        <li>PUT /api/staff/{id}/role – Update Role</li>
+        <li>GET /api/staff/{id}/login-history – Login History</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── ETL Pipeline Status ─────────────────────────────────────────── -->
+  <div class="section-title">⚙️ ETL Pipeline Status</div>
+  <table class="etl-table" style="margin-bottom:40px">
+    <thead>
+      <tr>
+        <th>Source System</th>
+        <th>Type</th>
+        <th>Database</th>
+        <th>Tech Stack</th>
+        <th>Entities Synced</th>
+        <th>Sync Interval</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>WekezaCore</strong></td>
+        <td>Core Banking</td>
+        <td>wekeza_banking_comprehensive (PG)</td>
+        <td>.NET 8 / EF Core / Npgsql</td>
+        <td>Customers · Accounts · Transactions</td>
+        <td>1 min</td>
+        <td><span class="dot dot-g"></span>Live</td>
+      </tr>
+      <tr>
+        <td><strong>WekezaBank</strong></td>
+        <td>Risk / KYC / AML</td>
+        <td>risk_management (PG)</td>
+        <td>Python / SQLAlchemy</td>
+        <td>analyst_cases · transaction_history · risk_metrics</td>
+        <td>1 min</td>
+        <td><span class="dot dot-g"></span>Live</td>
+      </tr>
+      <tr>
+        <td><strong>WekezaCRM</strong></td>
+        <td>CRM</td>
+        <td>WekezaCRM (SQL Server)</td>
+        <td>.NET 8 / EF Core / MSSQL</td>
+        <td>Customers · Cases · Interactions · Sentiments · Campaigns</td>
+        <td>5 min</td>
+        <td><span class="dot dot-g"></span>Live</td>
+      </tr>
+      <tr>
+        <td><strong>WekezaOpenBanking</strong></td>
+        <td>Open Banking</td>
+        <td>wekeza_banking (PG)</td>
+        <td>Node.js / pg</td>
+        <td>customers · accounts · transactions · payments · webhooks</td>
+        <td>1 min</td>
+        <td><span class="dot dot-g"></span>Live</td>
+      </tr>
+      <tr style="opacity:.6">
+        <td><strong>WekezaGlobal</strong></td>
+        <td>Cross-border</td>
+        <td>WekezaGlobal (PG)</td>
+        <td>TBD</td>
+        <td>–</td>
+        <td>–</td>
+        <td><span class="dot dot-a"></span>Pending</td>
+      </tr>
+      <tr style="opacity:.6">
+        <td><strong>WekezaDFS</strong></td>
+        <td>Digital FS</td>
+        <td>WekezaDFS (PG)</td>
+        <td>TBD</td>
+        <td>–</td>
+        <td>–</td>
+        <td><span class="dot dot-a"></span>Pending</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── Risk &amp; Fraud Panel ──────────────────────────────────────── -->
+  <div class="section-title">🛡️ Risk Management &amp; Fraud Detection</div>
+  <div class="risk-row">
+    <div class="risk-card">
+      <div class="risk-title">📊 Risk Distribution (Simulated)</div>
+      <div class="risk-bars">
+        <div class="bar-row">
+          <div class="bar-label">LOW Risk</div>
+          <div class="bar-track"><div class="bar-fill" style="width:72%;background:#43a047"></div></div>
+          <div class="bar-val">72%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">MEDIUM Risk</div>
+          <div class="bar-track"><div class="bar-fill" style="width:20%;background:#fb8c00"></div></div>
+          <div class="bar-val">20%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">HIGH Risk</div>
+          <div class="bar-track"><div class="bar-fill" style="width:8%;background:#e53935"></div></div>
+          <div class="bar-val">8%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">KYC Full</div>
+          <div class="bar-track"><div class="bar-fill" style="width:65%;background:#00bcd4"></div></div>
+          <div class="bar-val">65%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">AML Cleared</div>
+          <div class="bar-track"><div class="bar-fill" style="width:91%;background:#7c3aed"></div></div>
+          <div class="bar-val">91%</div>
+        </div>
+      </div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-title">🚨 Fraud Detection &amp; AML Integrations</div>
+      <ul class="fraud-list">
+        <li>
+          <span class="fi">⚡</span>
+          <div>
+            <div style="font-weight:600">Tazama (Transaction Monitoring)</div>
+            <div style="color:var(--muted);font-size:.75rem">Real-time transaction monitoring · Typology detection ·
+              FATF-aligned rules · WekezaBank integration</div>
+          </div>
+        </li>
+        <li>
+          <span class="fi">🔍</span>
+          <div>
+            <div style="font-weight:600">Ballerine (KYC/AML Platform)</div>
+            <div style="color:var(--muted);font-size:.75rem">Customer due diligence · Document verification ·
+              Risk-based onboarding · WekezaBank integration</div>
+          </div>
+        </li>
+        <li>
+          <span class="fi">🔐</span>
+          <div>
+            <div style="font-weight:600">CISO Assistant (Security GRC)</div>
+            <div style="color:var(--muted);font-size:.75rem">Compliance posture · Security risk management ·
+              ISO 27001 / SOC 2 controls · WekezaBank integration</div>
+          </div>
+        </li>
+        <li>
+          <span class="fi">🤖</span>
+          <div>
+            <div style="font-weight:600">Isolation Forest (ML Anomaly Detection)</div>
+            <div style="color:var(--muted);font-size:.75rem">Unsupervised ML for fraud detection · 
+              Polled every 30s · Integrated with analyst workflow</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── Customer 360 ───────────────────────────────────────────────── -->
+  <div class="section-title">👤 Customer 360 View (GCID-based Unified Identity)</div>
+  <div class="c360-card">
+    <div class="c360-grid">
+      <div class="c360-profile">
+        <div class="c360-avatar">👤</div>
+        <div class="c360-name">John M. Kamau</div>
+        <div class="c360-gcid">GCID: a3f2b1c0-1234-5678-9abc-def012345678</div>
+        <div class="c360-badges">
+          <span class="badge badge-green">KYC: Verified</span>
+          <span class="badge badge-green">Risk: LOW</span>
+          <span class="badge badge-blue">Premium</span>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:12px">
+          Identity Confidence: 98%<br/>
+          Sources: 4 systems<br/>
+          Last Activity: 2h ago
+        </div>
+      </div>
+      <div class="c360-detail">
+        <div class="detail-item">
+          <div class="detail-label">CoreBankingId</div>
+          <div class="detail-val">CB-2024-00123</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">CRM ID</div>
+          <div class="detail-val">CRM-45678</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">OpenBanking ID</div>
+          <div class="detail-val">OB-9a1b2c3d</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Risk System ID</div>
+          <div class="detail-val">RISK-00789</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Active Accounts</div>
+          <div class="detail-val">3 accounts</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Credit Score</div>
+          <div class="detail-val">742 / 850</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Lifetime Value</div>
+          <div class="detail-val">KES 1,247,500</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Financial Health</div>
+          <div class="detail-val">78 / 100</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Segment</div>
+          <div class="detail-val">Premium Retail</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Open Cases</div>
+          <div class="detail-val">0</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">30d Txn Count</div>
+          <div class="detail-val">47 transactions</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Fraud Flags (90d)</div>
+          <div class="detail-val" style="color:#81c784">0 flags</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Analytics ────────────────────────────────────────────────── -->
+  <div class="section-title">📈 Analytics Dashboards</div>
+  <div class="analytics-row">
+    <div class="chart-card">
+      <div class="chart-title">Transactions by Channel (30d)</div>
+      <div class="mini-bar-chart">
+        <div class="mbc" style="height:90%;background:linear-gradient(to top,#1a237e,#3949ab)"></div>
+        <div class="mbc" style="height:65%;background:linear-gradient(to top,#1a237e,#3949ab)"></div>
+        <div class="mbc" style="height:80%;background:linear-gradient(to top,#1a237e,#3949ab)"></div>
+        <div class="mbc" style="height:45%;background:linear-gradient(to top,#1a237e,#3949ab)"></div>
+        <div class="mbc" style="height:30%;background:linear-gradient(to top,#1a237e,#3949ab)"></div>
+      </div>
+      <div class="chart-labels">
+        <span>Mobile</span><span>Web</span><span>Branch</span><span>ATM</span><span>USSD</span>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Risk Level Distribution</div>
+      <div class="donut-wrap">
+        <svg width="90" height="90" viewBox="0 0 36 36" class="donut">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#30363d" stroke-width="3.8"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#43a047" stroke-width="3.8"
+                  stroke-dasharray="72 28" stroke-dashoffset="25" transform="rotate(-90 18 18)"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#fb8c00" stroke-width="3.8"
+                  stroke-dasharray="20 80" stroke-dashoffset="-47" transform="rotate(-90 18 18)"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e53935" stroke-width="3.8"
+                  stroke-dasharray="8 92" stroke-dashoffset="-67" transform="rotate(-90 18 18)"/>
+        </svg>
+        <div class="donut-legend">
+          <div class="legend-row"><div class="lc" style="background:#43a047"></div><span>LOW (72%)</span></div>
+          <div class="legend-row"><div class="lc" style="background:#fb8c00"></div><span>MEDIUM (20%)</span></div>
+          <div class="legend-row"><div class="lc" style="background:#e53935"></div><span>HIGH (8%)</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">AI Decision Outcomes (30d)</div>
+      <div class="mini-bar-chart">
+        <div class="mbc" style="height:88%;background:linear-gradient(to top,#43a047,#81c784)"></div>
+        <div class="mbc" style="height:35%;background:linear-gradient(to top,#e53935,#ef9a9a)"></div>
+        <div class="mbc" style="height:55%;background:linear-gradient(to top,#fb8c00,#ffcc02)"></div>
+        <div class="mbc" style="height:15%;background:linear-gradient(to top,#7c3aed,#c084fc)"></div>
+      </div>
+      <div class="chart-labels">
+        <span>Approved</span><span>Declined</span><span>Review</span><span>Escalated</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DataHub Schema ─────────────────────────────────────────────── -->
+  <div class="section-title">🗄️ Wekeza Datahub Schema</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:40px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+      <div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--accent);margin-bottom:8px">📐 staging schema</div>
+        <div style="font-size:.75rem;color:var(--muted);line-height:1.9">
+          Ephemeral landing zone for raw ETL data before transformation.
+          Tables are truncated after each warehouse load cycle.
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--accent);margin-bottom:8px">🏭 warehouse schema</div>
+        <div style="font-size:.75rem;color:var(--muted);line-height:1.9">
+          <strong style="color:var(--text)">dim_customers</strong> – Global Customer (GCID) with cross-system IDs<br/>
+          <strong style="color:var(--text)">dim_accounts</strong> – Unified account across all systems<br/>
+          <strong style="color:var(--text)">dim_dates</strong> – Date dimension for analytics<br/>
+          <strong style="color:var(--text)">fact_transactions</strong> – All transactions across sources<br/>
+          <strong style="color:var(--text)">fact_payments</strong> – Open banking payments<br/>
+          <strong style="color:var(--text)">fact_risk_assessments</strong> – Risk scores &amp; AML cases<br/>
+          <strong style="color:var(--text)">fact_interactions</strong> – CRM interactions &amp; sentiments<br/>
+          <strong style="color:var(--text)">fact_cases</strong> – Support &amp; compliance cases<br/>
+          <strong style="color:var(--text)">customer_features</strong> – ML feature store per customer
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--accent);margin-bottom:8px">📊 analytics schema</div>
+        <div style="font-size:.75rem;color:var(--muted);line-height:1.9">
+          <strong style="color:var(--text)">customer_360</strong> – Materialized view: full unified customer view<br/>
+          <strong style="color:var(--text)">daily_transaction_summary</strong> – Materialized: daily channel volumes<br/>
+          <strong style="color:var(--text)">risk_dashboard</strong> – Materialized: risk KPIs &amp; fraud metrics
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--accent);margin-bottom:8px">📝 audit schema</div>
+        <div style="font-size:.75rem;color:var(--muted);line-height:1.9">
+          <strong style="color:var(--text)">etl_sync_log</strong> – All ETL run results with timing<br/>
+          <strong style="color:var(--text)">data_quality_issues</strong> – Data quality flags &amp; resolutions<br/>
+          Retention: 7 years per compliance requirements
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── API Endpoints ──────────────────────────────────────────────── -->
+  <div class="section-title">🔌 Enterprise Brain API Endpoints</div>
+  <table class="etl-table" style="margin-bottom:40px">
+    <thead>
+      <tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Module</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/health</td><td>System health check</td><td>Core</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datasources</td><td>List all 22 data sources</td><td>Data Registry</td></tr>
+      <tr><td><span style="color:#ffcc02">POST</span></td><td>/api/datasources/{id}/sync</td><td>Trigger ETL sync for a source</td><td>ETL</td></tr>
+      <tr><td><span style="color:#ffcc02">POST</span></td><td>/api/datasources/sync-all</td><td>Sync all enabled sources</td><td>ETL</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datasources/test-connections</td><td>Test all database connections</td><td>Connectivity</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datahub</td><td>Datahub overview &amp; record counts</td><td>DataHub</td></tr>
+      <tr><td><span style="color:#ffcc02">POST</span></td><td>/api/datahub/sync</td><td>Full ETL sync across all systems</td><td>DataHub</td></tr>
+      <tr><td><span style="color:#ffcc02">POST</span></td><td>/api/datahub/sync/{sourceSystem}</td><td>Sync specific source system</td><td>DataHub</td></tr>
+      <tr><td><span style="color:#ffcc02">POST</span></td><td>/api/datahub/analytics/refresh</td><td>Refresh materialized views</td><td>Analytics</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datahub/customers/{gcid}</td><td>Customer 360 from datahub</td><td>Customer</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datahub/customers/search</td><td>Search by email/phone/nationalId</td><td>Customer</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datahub/statistics</td><td>Transaction &amp; risk statistics</td><td>Analytics</td></tr>
+      <tr><td><span style="color:#ffcc02">POST</span></td><td>/api/decision</td><td>AI real-time decision engine</td><td>AI/ML</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/decision/risk-score/{gcid}</td><td>Customer risk score</td><td>AI/ML</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/customer360/{gcid}</td><td>Full 360° customer intelligence</td><td>Customer</td></tr>
+      <tr><td><span style="color:#81c784">GET</span></td><td>/api/datahub/connections</td><td>ETL source connectivity test</td><td>Connectivity</td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<!-- ── Footer ──────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <span>🧠 Wekeza Enterprise Brain · github.com/eodenyire/WekezaEnterpriseBrain · .NET 10 + PostgreSQL</span>
+    <span>Owner: Emmanuel Odenyire Anyango · March 2026 · All 4 ETL services active</span>
+  </div>
+</footer>
+
+</body>
+</html>

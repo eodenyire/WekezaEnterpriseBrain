@@ -69,6 +69,15 @@ builder.Services.AddScoped<IEtlService>(sp =>
     return new WekezaCrmEtlService(hub, logger, connStr);
 });
 
+builder.Services.AddScoped<IEtlService>(sp =>
+{
+    var hub    = sp.GetRequiredService<WekezaDataHubDbContext>();
+    var logger = sp.GetRequiredService<ILogger<WekezaCoreEtlService>>();
+    var connStr = config["SourceSystems:WekezaCore:ConnectionString"]
+        ?? "Host=localhost;Port=5432;Database=wekeza_banking_comprehensive;Username=postgres;Password=change_in_production";
+    return new WekezaCoreEtlService(hub, logger, connStr);
+});
+
 // DataHub Orchestrator
 builder.Services.AddScoped<IDataHubOrchestrator, DataHubOrchestrator>();
 
